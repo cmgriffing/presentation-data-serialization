@@ -1,0 +1,8 @@
+const avro = require('avsc/etc/browser/avsc-types');
+const schema = require('./avro.schema');
+
+window.avro = avro;
+
+window.avroBaseSchema = schema.exampleBase;
+window.avro1KSchema = schema.example1K;
+window.avro10KSchema = schema.example10K;

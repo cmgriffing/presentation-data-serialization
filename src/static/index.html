@@ -1,0 +1,379 @@
+<html>
+  <head>
+    <script src="/shipment.js"></script>
+    <script src="/constants.js"></script>
+
+    <script src="/lib/_common.js"></script>
+    <script src="/lib/avro.js"></script>
+    <script src="/lib/xml.js"></script>
+    <script src="/lib/bencode.js"></script>
+    <script src="/lib/bson.js"></script>
+    <script src="/lib/msgpack.js"></script>
+    <script src="/lib/protobuf.js"></script>
+
+    <script src="/example-data-base.js"></script>
+    <script src="/example-data-1k.js"></script>
+    <script src="/example-data-10k.js"></script>
+    <script src="/example-data-100k.js"></script>
+
+
+    <style>
+      body {
+        font: 10px sans-serif;
+      }
+
+      .axis path,
+      .axis line {
+        fill: none;
+        stroke: #000;
+        shape-rendering: crispEdges;
+      }
+
+      .x.axis path {
+        display: none;
+      }
+
+    </style>
+    <script src="https://d3js.org/d3.v3.min.js"></script>
+
+
+
+  </head>
+  <body>
+    <h1>Planet Express</h1>
+    <button class="send-shipment">Send Shipment</button>
+    <button class="show-results">Show Results</button>
+
+    <div id="time-graph"></div>
+
+    <script>
+
+      // Avro setup
+      const avroSchema = window.avro10KSchema;
+
+      // BSON setup
+      const bson = new BSON();
+
+      // protobuf
+      const proto = window.protobuf10KSchema;
+
+      const transforms = {};
+      CONSTANTS.FORMATS_ARRAY.map(format => {
+        switch(format) {
+
+          case CONSTANTS.FORMATS.JSON:
+            transforms[format] = {
+              handleRequest: (shipment) => {
+                return JSON.stringify(shipment);
+              },
+              handleAsyncResponse: async (result) => {
+                return result.json();
+              }
+            };
+            break;
+
+          case CONSTANTS.FORMATS.AVRO:
+            transforms[format] = {
+              handleRequest: (shipment) => {
+                return avroSchema.toBuffer(shipment);
+              },
+              handleAsyncResponse: async (result) => {
+                return avroSchema.fromBuffer(Buffer.from(await result.arrayBuffer()))
+              }
+            };
+            break;
+
+          case CONSTANTS.FORMATS.XML:
+            transforms[format] = {
+              handleRequest: (shipment) => {
+                return xmljs.js2xml(shipment, {
+                  compact: true
+                });
+              },
+              handleAsyncResponse: async (result) => {
+                const text = await result.text();
+                return xmljs.xml2js(`<data>${text}</data>`, {
+                  compact: true
+                }).data;
+              }
+            };
+            break;
+
+          case CONSTANTS.FORMATS.BENCODE:
+            transforms[format] = {
+              handleRequest: (shipment) => {
+                return bencode.encode(shipment).toString();
+              },
+              handleAsyncResponse: async (result) => {
+                return bencode.decode(await result.text(), 'utf8');
+              }
+            };
+            break;
+
+          case CONSTANTS.FORMATS.BSON:
+            transforms[format] = {
+              handleRequest: (shipment) => {
+                return bson.serialize(shipment);
+              },
+              handleAsyncResponse: async (result) => {
+                return bson.deserialize(Buffer.from(await result.arrayBuffer()), {
+                  allowObjectSmallerThanBufferSize: true
+                });
+              }
+            };
+            break;
+
+          case CONSTANTS.FORMATS.MSGPACK:
+            transforms[format] = {
+              handleRequest: (shipment) => {
+                return msgpack.encode(shipment);
+              },
+              handleAsyncResponse: async (result) => {
+                return msgpack.decode(Buffer.from(await result.arrayBuffer()));
+              }
+            };
+            break;
+
+          case CONSTANTS.FORMATS.PROTOBUF:
+            transforms[format] = {
+              handleRequest: (shipment) => {
+                return proto.encode(proto.create(shipment)).finish();
+              },
+              handleAsyncResponse: async (result) => {
+                return proto.decode(Buffer.from(await result.arrayBuffer()));
+              }
+            };
+            break;
+        }
+      });
+
+      console.log('transforms', transforms);
+
+      const RequestTimings = {};
+      const EncodeTimings = {};
+      const ParseTimings = {};
+
+      const addTiming = function(timingSet, format, timing) {
+        if(!timingSet[format]) {
+          timingSet[format] = [];
+        }
+        timingSet[format].push(timing);
+      }
+
+      const _getAverageTime = function(timingSet, format) {
+        let total = 0;
+        timingSet[format].map(timing => {
+          total += timing;
+        });
+
+        return total / timingSet[format].length;
+      };
+
+      window.getAverageTimes = function() {
+
+        const averageEncodings = [];
+        const averageRequests = [];
+        const averageParsings = [];
+
+        CONSTANTS.FORMATS_ARRAY.map((format) => {
+          const averageEncodingTime = _getAverageTime(EncodeTimings, format);
+          const averageRequestTime = _getAverageTime(RequestTimings, format);
+          const averageParseTime = _getAverageTime(ParseTimings, format);
+
+          averageEncodings.push({format, timing: averageEncodingTime});
+          averageRequests.push({format, timing: averageRequestTime});
+          averageParsings.push({format, timing: averageParseTime});
+
+        });
+
+        const sorter = function(a, b) {
+          if(a.timing < b.timing) {
+            return -1;
+          } else if(a.timing > b.timing) {
+            return 1;
+          } else {
+            return 0;
+          }
+        }
+
+        // console.log('Encoding: ', averageEncodings.sort(sorter));
+        // console.log('Requests: ', averageRequests.sort(sorter));
+        // console.log('Parsing: ', averageParsings.sort(sorter));
+
+        return {
+          averageEncodings,
+          averageRequests,
+          averageParsings,
+        };
+
+      }
+
+      document.querySelector('.send-shipment')
+        .addEventListener('click', async function(e) {
+          try {
+            const shipment = window.EXAMPLE_DATA_100K;
+            CONSTANTS.FORMATS_ARRAY.map(async format => {
+
+              const startEncode = performance.now();
+              const body = transforms[format].handleRequest(shipment);
+              const endEncode = performance.now();
+              addTiming(EncodeTimings, format, endEncode - startEncode);
+
+              const startRequest = performance.now();
+              const result = await fetch(`${window.location.origin}/api/shipment`, {
+                method: 'POST',
+                body: body,
+                headers: {
+                    'Content-Type': 'application/octet-stream',
+                    'Serialization-Format': format,
+                },
+              });
+              const endRequest = performance.now();
+              addTiming(RequestTimings, format, endRequest - startRequest);
+
+              const startParse = performance.now();
+              console.log(`Handling ${format} response: `, await transforms[format].handleAsyncResponse(result));
+              const endParse = performance.now();
+              addTiming(ParseTimings, format, endParse - startParse);
+            })
+
+          } catch(e) {
+            console.log('e', e);
+          }
+
+        });
+
+        document.querySelector('.show-results').addEventListener('click', function() {
+          const { averageEncodings, averageRequests, averageParsings } = window.getAverageTimes();
+          const data = averageEncodings.map((item, index) => {
+            return {
+              format: item.format,
+              values: [
+                {
+                  metric: 'Encoding',
+                  value: averageEncodings[index].timing
+                },
+                // {
+                //   metric: 'Request',
+                //   value: averageRequests[index].timing
+                // },
+                {
+                  metric: 'Parsing',
+                  value: averageParsings[index].timing
+                },
+              ]
+            }
+          });
+
+          renderGraph('#time-graph', data);
+        });
+
+        function renderGraph(elementSelector, data) {
+
+          document.querySelector(elementSelector).innerHTML = '';
+
+          var margin = {top: 20, right: 20, bottom: 30, left: 40},
+              width = 960 - margin.left - margin.right,
+              height = 500 - margin.top - margin.bottom;
+
+          var x0 = d3.scale.ordinal()
+              .rangeRoundBands([0, width], .1);
+
+          var x1 = d3.scale.ordinal();
+
+          var y = d3.scale.linear()
+              .range([height, 0]);
+
+          var xAxis = d3.svg.axis()
+              .scale(x0)
+              .tickSize(0)
+              .orient("bottom");
+
+          var yAxis = d3.svg.axis()
+              .scale(y)
+              .orient("left");
+
+          var color = d3.scale.ordinal()
+              .range(["#ca0020","#f4a582","#d5d5d5","#92c5de","#0571b0"]);
+
+          var svg = d3.select(elementSelector).append("svg")
+              .attr("width", width + margin.left + margin.right)
+              .attr("height", height + margin.top + margin.bottom)
+            .append("g")
+              .attr("transform", "translate(" + margin.left + "," + margin.top + ")");
+
+          var formatNames = data.map(function(d) { return d.format; });
+          var metricNames = data[0].values.map(function(d) { return d.metric; });
+
+          x0.domain(formatNames);
+          x1.domain(metricNames).rangeRoundBands([0, x0.rangeBand()]);
+          y.domain([0, d3.max(data, function(format) { return d3.max(format.values, function(d) { return d.value; }); })]);
+
+          svg.append("g")
+              .attr("class", "x axis")
+              .attr("transform", "translate(0," + height + ")")
+              .call(xAxis);
+
+          svg.append("g")
+              .attr("class", "y axis")
+              .style('opacity','0')
+              .call(yAxis)
+          .append("text")
+              .attr("transform", "rotate(-90)")
+              .attr("y", 6)
+              .attr("dy", ".71em")
+              .style("text-anchor", "end")
+              .style('font-weight','bold')
+              .text("ms");
+
+          svg.select('.y').transition().duration(500).delay(1300).style('opacity','1');
+
+          var slice = svg.selectAll(".slice")
+              .data(data)
+              .enter().append("g")
+              .attr("class", "g")
+              .attr("transform",function(d) { return "translate(" + x0(d.format) + ",0)"; });
+
+          slice.selectAll("rect")
+              .data(function(d) { return d.values; })
+          .enter().append("rect")
+              .attr("width", x1.rangeBand())
+              .attr("x", function(d) { return x1(d.metric); })
+              .style("fill", function(d) { return color(d.metric) })
+              .attr("y", function(d) { return y(0); })
+              .attr("height", function(d) { return height - y(0); });
+
+          slice.selectAll("rect")
+              .transition()
+              .delay(function (d) {return Math.random()*1000;})
+              .duration(1000)
+              .attr("y", function(d) { return y(d.value); })
+              .attr("height", function(d) { return height - y(d.value); });
+
+          //Legend
+          var legend = svg.selectAll(".legend")
+              .data(data[0].values.map(function(d) { return d.metric; }).reverse())
+          .enter().append("g")
+              .attr("class", "legend")
+              .attr("transform", function(d,i) { return "translate(0," + i * 20 + ")"; })
+              .style("opacity","0");
+
+          legend.append("rect")
+              .attr("x", width - 18)
+              .attr("width", 18)
+              .attr("height", 18)
+              .style("fill", function(d) { return color(d); });
+
+          legend.append("text")
+              .attr("x", width - 24)
+              .attr("y", 9)
+              .attr("dy", ".35em")
+              .style("text-anchor", "end")
+              .text(function(d) {return d; });
+
+          legend.transition().duration(500).delay(function(d,i){ return 1300 + 100 * i; }).style("opacity","1");
+
+        }
+    </script>
+  </body>
+</html>

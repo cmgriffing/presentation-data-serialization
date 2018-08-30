@@ -1,0 +1,21 @@
+{
+  "nested": {
+    "Shipment": {
+      "fields": {
+        "name": {
+          "type": "string",
+          "id": 1
+        },
+        "weight": {
+          "type": "float",
+          "id": 2
+        },
+        "contents": {
+          "type": "string",
+          "id": 3,
+          "rule": "repeated"
+        }
+      }
+    }
+  }
+}

@@ -1,0 +1,42 @@
+{
+  "name": "data-serialization",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "slides:assets": "mkdir -p html/assets && cp -a slides/assets/. html/assets/",
+    "slides:build": "pandoc --section-divs -s -t revealjs slides/*.md -o html/index.html --verbose --slide-level=1 --from markdown-yaml_metadata_block --variable theme='beige'",
+    "slides:watch": "nodemon --exec \"npm run slides:build\" slides/*.md",
+    "slides:deploy": "npm run slides:assets && git subtree push --prefix html origin gh-pages",
+    "server:build": "node ./src/build.js",
+    "server:watch": "nodemon --exec \"npm run server:build && node ./src/index.js\" ./src/**/* --ignore ./src/static/lib/*.*"
+  },
+  "author": "",
+  "license": "ISC",
+  "devDependencies": {
+    "benchmark": "^2.1.4",
+    "browserify": "^16.2.2",
+    "compression": "^1.7.3",
+    "concat": "^1.0.3",
+    "glob": "^7.1.2",
+    "microtime": "^2.1.8",
+    "nodemon": "^1.17.5",
+    "uglify-es": "^3.3.9",
+    "uglify-js": "^3.4.3",
+    "yargs": "^12.0.1"
+  },
+  "dependencies": {
+    "avsc": "^5.4.2",
+    "bencode": "^2.0.0",
+    "bl": "^2.0.1",
+    "body-parser": "^1.18.3",
+    "bson": "^3.0.2",
+    "express": "^4.16.3",
+    "flatbuffers": "^1.9.0",
+    "msgpack-lite": "^0.1.26",
+    "msgpack5": "^4.2.0",
+    "protobufjs": "^6.8.8",
+    "xml-js": "^1.6.7",
+    "xml2js": "^0.4.19"
+  }
+}

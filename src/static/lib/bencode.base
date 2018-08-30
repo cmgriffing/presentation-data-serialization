@@ -1,0 +1,3 @@
+const bencode = require('bencode');
+
+window.bencode = bencode;

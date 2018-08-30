@@ -1,0 +1,6 @@
+const msgpack5 = require('msgpack5');
+const msgpack = require('msgpack-lite');
+
+window.msgpack5 = msgpack5;
+
+window.msgpack = msgpack;

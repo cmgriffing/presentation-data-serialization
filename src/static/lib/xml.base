@@ -1,0 +1,3 @@
+const xmljs = require('xml-js');
+
+window.xmljs = xmljs;
