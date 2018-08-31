@@ -3,17 +3,12 @@
 <head>
   <meta charset="utf-8">
   <meta name="generator" content="pandoc">
-  <title>010-intro</title>
+  <title></title>
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, minimal-ui">
   <link rel="stylesheet" href="reveal.js/css/reveal.css">
-  <style type="text/css">
-      code{white-space: pre-wrap;}
-      span.smallcaps{font-variant: small-caps;}
-      span.underline{text-decoration: underline;}
-      div.column{display: inline-block; vertical-align: top; width: 50%;}
-  </style>
+  <style type="text/css">code{white-space: pre;}</style>
   <link rel="stylesheet" href="reveal.js/css/theme/beige.css" id="theme">
   <!-- Printing and PDF exports -->
   <script>
@@ -42,13 +37,25 @@
 </section>
 <section id="but-why" class="level2">
 <h2>But, why?</h2>
-<p><img data-src="./assets/but-why.gif" /></p>
+<figure>
+<img src="./assets/but-why.gif" />
+</figure>
 </section>
 <section id="why-contd." class="level2">
 <h2>Why? (contd.)</h2>
-<p>Save on bandwidth costs</p>
+<ul>
+<li>Save on bandwidth costs</li>
+<li>Possibly save on cpu runtime</li>
+</ul>
 <aside class="notes">
 <p>Whether you are sending large or small data, the percentage of bytes saved is directly proportional to your end of month bandwidth cost.</p>
+</aside>
+</section>
+<section id="does-gzip-solve-all-these-problems" class="level2">
+<h2>Does Gzip solve all these problems?</h2>
+<p>Not quite.</p>
+<aside class="notes">
+<p>Gzip levels the playing field. However: - Browsers do not gzip data sent to the server - Some formats could still save data even after gzip</p>
 </aside>
 </section>
 </section>
@@ -72,7 +79,9 @@
 </section>
 <section id="xml" class="level2">
 <h2>XML</h2>
-<p><img data-src="./assets/xml.gif" /></p>
+<figure>
+<img src="./assets/xml.gif" />
+</figure>
 <p><a href="https://w3.org/XML/" class="uri">https://w3.org/XML/</a></p>
 <pre><code>// Example:
 &lt;?xml version=&quot;1.0&quot; encoding=&quot;UTF-8&quot; standalone=&quot;yes&quot;?&gt;
@@ -82,6 +91,9 @@
   &lt;contents&gt;widgets&lt;/contents&gt;
   &lt;contents&gt;cogs&lt;/contents&gt;
 &lt;/root&gt;</code></pre>
+<aside class="notes">
+<p>Nobody wants to use XML, but it really is better suited for encoding SVG than anything else.</p>
+</aside>
 </section>
 <section id="avro" class="level2">
 <h2>Avro</h2>
@@ -93,16 +105,22 @@
 </ul>
 <pre><code>// Example:
 Something(Bwidgetscogs</code></pre>
+<aside class="notes">
+<p>The schema is interesting because they are composable using the instances of the schemas.</p>
+</aside>
 </section>
 <section id="bencode" class="level2">
 <h2>Bencode</h2>
 <p><a href="https://en.wikipedia.org/wiki/Bencode" class="uri">https://en.wikipedia.org/wiki/Bencode</a></p>
 <ul>
-<li>Pronounced “B-encode”</li>
+<li>Pronounced &quot;B-encode&quot;</li>
 <li>Used by the Bittorrent protocol</li>
 </ul>
 <pre><code>// Example:
 d8:contentsl7:widgets4:cogse4:name9:Something6:weighti42ee</code></pre>
+<aside class="notes">
+<p>Does not natively support boolean values, so it could cause data corruption, since it converts booleans to 0s and 1s.</p>
+</aside>
 </section>
 <section id="bson" class="level2">
 <h2>BSON</h2>
@@ -110,11 +128,14 @@ d8:contentsl7:widgets4:cogse4:name9:Something6:weighti42ee</code></pre>
 <ul>
 <li>Used by MongoDB</li>
 <li>Pronounced [bee · sahn]</li>
-<li>Stands for “Binary JSON”</li>
+<li>Stands for &quot;Binary JSON&quot;</li>
 </ul>
 <pre><code>// Example:
 Oname
 Somethingweight*contents 0widgets1cogs</code></pre>
+<aside class="notes">
+<p>The bsonspec.org site is somewhat old school.</p>
+</aside>
 </section>
 <section id="messagepack" class="level2">
 <h2>MessagePack</h2>
@@ -126,6 +147,9 @@ Somethingweight*contents 0widgets1cogs</code></pre>
 </ul>
 <pre><code>// Example:
 ��name�Something�weight*�contents��widgets�cogs</code></pre>
+<div clas="notes">
+<p>Small integers are encoded into a single byte, and typical short strings require only one extra byte in addition to the strings themselves.</p>
+</div>
 </section>
 <section id="protobuf" class="level2">
 <h2>Protobuf</h2>
@@ -136,6 +160,10 @@ Somethingweight*contents 0widgets1cogs</code></pre>
 </ul>
 <pre><code>// Example:
 Something(Bwidgetscogs</code></pre>
+<aside class="notes">
+<p>There is not much documentation on the json flavor of scheme definition.</p>
+<p>With JSON as a config format, using nested data types requires they be defined within the same nested scope.</p>
+</aside>
 </section>
 <section id="others-unimplemented-here" class="level2">
 <h2>Others (unimplemented here)</h2>
@@ -147,10 +175,11 @@ Something(Bwidgetscogs</code></pre>
 </ul>
 <aside class="notes">
 <ul>
-<li><p>Flatbuffers required doing a local build via CMAKE.</p></li>
-<li><p>Thrift bares too many similarities to Protobuf</p></li>
+<li>Flatbuffers required doing a local build via CMAKE.</li>
+<li><p>One important thing is that you can operate upon a FlatBuffer without deserializing it from its underlying arrayBuffer.</p></li>
+<li><p>Thrift bares too many similarities to Protobuf with no discernible benefits</p></li>
 <li><p>YAML is YAML</p></li>
-<li><p>SOAP is just a superset of XML (read: worse XML) and is more of a protocol than a serialization format</p></li>
+<li><p>SOAP is almost always going to be asked about. SOAP is just a superset of XML (read: worse XML) and is more of a protocol than a serialization format</p></li>
 </ul>
 </aside>
 </section>
@@ -174,9 +203,11 @@ Something(Bwidgetscogs</code></pre>
 </section>
 <section id="content-length" class="level2">
 <h2>Content-Length</h2>
+<p>graph: <em>pre-gzip</em> and <em>post-gzip</em></p>
 </section>
 <section id="library-overhead" class="level2">
 <h2>Library overhead</h2>
+<p>graph: <em>file size</em></p>
 </section>
 <section id="end-to-end-browser" class="level2">
 <h2>End-to-End (browser)</h2>
@@ -185,20 +216,20 @@ Something(Bwidgetscogs</code></pre>
 <li>in browser graphs</li>
 </ul>
 </section>
-<section id="browser-runtime-complexity" class="level2">
-<h2>Browser Runtime Complexity</h2>
+<section id="browser-runtimes" class="level2">
+<h2>Browser Runtimes</h2>
 <ul>
-<li>performance.time</li>
 <li>benchmark js</li>
 </ul>
 </section>
-<section id="node-runtime-complexity" class="level2">
-<h2>Node Runtime Complexity</h2>
+<section id="node-runtimes" class="level2">
+<h2>Node Runtimes</h2>
 <ul>
 <li>Benchmark.js</li>
 </ul>
 <aside class="notes">
-
+<p>Its important to note that Node optimizes for JSON.</p>
+<p>Other platforms might see results that favor JSON much less.</p>
 </aside>
 </section>
 </section>
@@ -206,189 +237,10 @@ Something(Bwidgetscogs</code></pre>
 
 <section id="citations" class="level2">
 <h2>Citations</h2>
-<style>
-
-  code, pre {
-    background: white;
-  }
-
-</style>
-</section>
-</section>
-<section id="data-serialization-options-1" class="slide level1">
-<h1>Data Serialization Options</h1>
-</section>
-<section class="slide level1">
-
-<section id="basics-1" class="level2">
-<h2>Basics</h2>
-</section>
-<section id="but-why-1" class="level2">
-<h2>But, why?</h2>
-<p><img data-src="./assets/but-why.gif" /></p>
-</section>
-<section id="why-contd.-1" class="level2">
-<h2>Why? (contd.)</h2>
-<p>Save on bandwidth costs</p>
-<aside class="notes">
-<p>Whether you are sending large or small data, the percentage of bytes saved is directly proportional to your end of month bandwidth cost.</p>
-</aside>
-</section>
-</section>
-<section class="slide level1">
-
-<section id="formats-1" class="level2">
-<h2>Formats</h2>
-</section>
-<section id="json-1" class="level2">
-<h2>JSON</h2>
-<p><a href="https://www.json.org/" class="uri">https://www.json.org/</a></p>
-<pre><code>// Example:
-{
-  &quot;name&quot;: &quot;Something&quot;,
-  &quot;weight&quot;: 42,
-  &quot;contents&quot;: [
-    &quot;widgets&quot;,
-    &quot;cogs&quot;
-  ]
-}</code></pre>
-</section>
-<section id="xml-1" class="level2">
-<h2>XML</h2>
-<p><img data-src="./assets/xml.gif" /></p>
-<p><a href="https://w3.org/XML/" class="uri">https://w3.org/XML/</a></p>
-<pre><code>// Example:
-&lt;?xml version=&quot;1.0&quot; encoding=&quot;UTF-8&quot; standalone=&quot;yes&quot;?&gt;
-&lt;root&gt;
-  &lt;name&gt;Something&lt;/name&gt;
-  &lt;weight&gt;42&lt;/weight&gt;
-  &lt;contents&gt;widgets&lt;/contents&gt;
-  &lt;contents&gt;cogs&lt;/contents&gt;
-&lt;/root&gt;</code></pre>
-</section>
-<section id="avro-1" class="level2">
-<h2>Avro</h2>
-<p><a href="https://avro.apache.org/" class="uri">https://avro.apache.org/</a></p>
 <ul>
-<li>Relies on schemas.</li>
-<li>Rich data structures.</li>
-<li>A compact, fast, binary data format.</li>
+<li><p>https://en.wikipedia.org/wiki/Comparison_of_data_serialization_formats</p></li>
+<li><p>MSGPACK benchmarks: https://github.com/ludocode/schemaless-benchmarks#test-data</p></li>
 </ul>
-<pre><code>// Example:
-Something(Bwidgetscogs</code></pre>
-</section>
-<section id="bencode-1" class="level2">
-<h2>Bencode</h2>
-<p><a href="https://en.wikipedia.org/wiki/Bencode" class="uri">https://en.wikipedia.org/wiki/Bencode</a></p>
-<ul>
-<li>Pronounced “B-encode”</li>
-<li>Used by the Bittorrent protocol</li>
-</ul>
-<pre><code>// Example:
-d8:contentsl7:widgets4:cogse4:name9:Something6:weighti42ee</code></pre>
-</section>
-<section id="bson-1" class="level2">
-<h2>BSON</h2>
-<p><a href="http://bsonspec.org/" class="uri">http://bsonspec.org/</a></p>
-<ul>
-<li>Used by MongoDB</li>
-<li>Pronounced [bee · sahn]</li>
-<li>Stands for “Binary JSON”</li>
-</ul>
-<pre><code>// Example:
-Oname
-Somethingweight*contents 0widgets1cogs</code></pre>
-</section>
-<section id="messagepack-1" class="level2">
-<h2>MessagePack</h2>
-<p><a href="https://msgpack.org/index.html" class="uri">https://msgpack.org/index.html</a></p>
-<ul>
-<li>language-neutral</li>
-<li>platform-neutral</li>
-<li>extensible</li>
-</ul>
-<pre><code>// Example:
-��name�Something�weight*�contents��widgets�cogs</code></pre>
-</section>
-<section id="protobuf-1" class="level2">
-<h2>Protobuf</h2>
-<p><a href="https://developers.google.com/protocol-buffers/" class="uri">https://developers.google.com/protocol-buffers/</a></p>
-<ul>
-<li>By Google</li>
-<li>Uses schemas</li>
-</ul>
-<pre><code>// Example:
-Something(Bwidgetscogs</code></pre>
-</section>
-<section id="others-unimplemented-here-1" class="level2">
-<h2>Others (unimplemented here)</h2>
-<ul>
-<li>Flatbuffers</li>
-<li>Thrift</li>
-<li>YAML</li>
-<li>SOAP</li>
-</ul>
-<aside class="notes">
-<ul>
-<li><p>Flatbuffers required doing a local build via CMAKE.</p></li>
-<li><p>Thrift bares too many similarities to Protobuf</p></li>
-<li><p>YAML is YAML</p></li>
-<li><p>SOAP is just a superset of XML (read: worse XML) and is more of a protocol than a serialization format</p></li>
-</ul>
-</aside>
-</section>
-</section>
-<section class="slide level1">
-
-<section id="testing-methodology-1" class="level2">
-<h2>Testing Methodology</h2>
-</section>
-<section id="different-object-sizes-1" class="level2">
-<h2>Different Object Sizes</h2>
-<ul>
-<li>tiny (62 bytes as JSON)</li>
-<li>small (~1kb)</li>
-<li>medium (~10kb)</li>
-<li>large (~100kb)</li>
-</ul>
-</section>
-<section id="metrics-1" class="level2">
-<h2>Metrics</h2>
-</section>
-<section id="content-length-1" class="level2">
-<h2>Content-Length</h2>
-</section>
-<section id="library-overhead-1" class="level2">
-<h2>Library overhead</h2>
-</section>
-<section id="end-to-end-browser-1" class="level2">
-<h2>End-to-End (browser)</h2>
-<ul>
-<li>Benchmark.js</li>
-<li>in browser graphs</li>
-</ul>
-</section>
-<section id="browser-runtime-complexity-1" class="level2">
-<h2>Browser Runtime Complexity</h2>
-<ul>
-<li>performance.time</li>
-<li>benchmark js</li>
-</ul>
-</section>
-<section id="node-runtime-complexity-1" class="level2">
-<h2>Node Runtime Complexity</h2>
-<ul>
-<li>Benchmark.js</li>
-</ul>
-<aside class="notes">
-
-</aside>
-</section>
-</section>
-<section class="slide level1">
-
-<section id="citations-1" class="level2">
-<h2>Citations</h2>
 <style>
 
   code, pre {
@@ -409,14 +261,12 @@ Something(Bwidgetscogs</code></pre>
       // Full list of configuration options available at:
       // https://github.com/hakimel/reveal.js#configuration
       Reveal.initialize({
-        // Push each slide change to the browser history
-        history: true,
 
         // Optional reveal.js plugins
         dependencies: [
           { src: 'reveal.js/lib/js/classList.js', condition: function() { return !document.body.classList; } },
           { src: 'reveal.js/plugin/zoom-js/zoom.js', async: true },
-          { src: 'reveal.js/plugin/notes/notes.js', async: true }
+              { src: 'reveal.js/plugin/notes/notes.js', async: true }
         ]
       });
     </script>

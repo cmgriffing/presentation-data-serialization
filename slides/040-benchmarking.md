@@ -11,31 +11,30 @@
 
 ## Content-Length
 
+graph: *pre-gzip* and *post-gzip*
+
 ## Library overhead
 
-
+graph: *file size*
 
 ## End-to-End (browser)
 
 - Benchmark.js
 - in browser graphs
 
+## Browser Runtimes
 
-## Browser Runtime Complexity
-
-- performance.time
 - benchmark js
 
 
-## Node Runtime Complexity
+## Node Runtimes
 
 - Benchmark.js
 
-
 <div class="notes">
+Its important to note that Node optimizes for JSON.
 
-
-
+Other platforms might see results that favor JSON much less.
 </div>
 
 ---
