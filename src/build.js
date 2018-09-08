@@ -19,6 +19,9 @@ glob(`${__dirname}/static/lib/*.base`, (error, files) => {
     const pathParts = path.parse(file);
 
     browserify(file).bundle(((err, buf) => {
+      if(err) {
+        console.log('Error running browserify', pathParts.name, err);
+      }
       fs.writeFileSync(`${pathParts.dir}/${pathParts.name}.js`, buf);
       browserifiedFiles[`${pathParts.name}.js`] = buf.toString();
       browserified += 1;

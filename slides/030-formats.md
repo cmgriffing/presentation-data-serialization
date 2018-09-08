@@ -1,10 +1,12 @@
-## Formats
+##
+
+<h1>Formats</h1>
 
 ## JSON
 
 [https://www.json.org/](https://www.json.org/)
 
-```
+```json
 // Example:
 {
   "name": "Something",
@@ -22,8 +24,7 @@
 
 [https://w3.org/XML/](https://w3.org/XML/)
 
-```
-// Example:
+```xml
 <?xml version="1.0" encoding="UTF-8" standalone="yes"?>
 <root>
   <name>Something</name>
@@ -41,17 +42,77 @@ Nobody wants to use XML, but it really is better suited for encoding SVG than an
 
 [https://avro.apache.org/](https://avro.apache.org/)
 
-- Relies on schemas.
-- Rich data structures.
-- A compact, fast, binary data format.
-
 ```
-// Example:
 Something(Bwidgetscogs
 ```
 
 <div class="notes">
-The schema is interesting because they are composable using the instances of the schemas.
+- uses a schema
+</div>
+
+## Avro Schema
+
+```javascript
+const example1K = avro.Type.forSchema({
+  type: 'record',
+  fields: [
+    { name: 'id', type: 'string' },
+    { name: 'index', type: 'int' },
+    { name: 'guid', type: 'string' },
+    { name: 'isActive', type: 'boolean' },
+    { name: 'balance', type: 'string' },
+    { name: 'picture', type: 'string' },
+    { name: 'age', type: 'int' },
+    { name: 'eyeColor', type: 'string' },
+    { name: 'name', type: 'string' },
+    { name: 'gender', type: 'string' },
+    { name: 'company', type: 'string' },
+    { name: 'email', type: 'string' },
+    { name: 'phone', type: 'string' },
+    { name: 'address', type: 'string' },
+    { name: 'about', type: 'string' },
+    { name: 'registered', type: 'string' },
+    { name: 'latitude', type: 'float' },
+    { name: 'longitude', type: 'float' },
+    { name: 'greeting', type: 'string' },
+    { name: 'favoriteFruit', type: 'string' },
+    { name: 'tags', type: {type: 'array', items: 'string'} },
+    {
+      name: 'friends',
+      type: {
+        type: 'array',
+        items: {
+          type: 'record',
+          fields: [
+            { name: 'id', type: 'int'},
+            { name: 'name', type: 'string'},
+          ]
+        }
+      }
+    },
+  ]
+});
+```
+
+## Avro Schema (contd.)
+
+```javascript
+const exampleArraySchema = avro.Type.forSchema({
+  type: 'record',
+  fields: [
+    {
+      name: 'data',
+      type: {
+        type: 'array',
+        items: exampleSchema
+      }
+    }
+  ],
+});
+```
+
+<div class="notes">
+- schemas are composable by instance
 </div>
 
 ## Bencode
@@ -62,12 +123,13 @@ The schema is interesting because they are composable using the instances of the
 - Used by the Bittorrent protocol
 
 ```
-// Example:
 d8:contentsl7:widgets4:cogse4:name9:Something6:weighti42ee
 ```
 
 <div class="notes">
-Does not natively support boolean values, so it could cause data corruption, since it converts booleans to 0s and 1s.
+- Does not natively support boolean values,
+- Could cause data corruption,
+- Converts booleans to 0s and 1s.
 </div>
 
 ## BSON
@@ -79,7 +141,6 @@ Does not natively support boolean values, so it could cause data corruption, sin
 - Stands for "Binary JSON"
 
 ```
-// Example:
 Oname
 Somethingweight*contents 0widgets1cogs
 ```
@@ -92,16 +153,11 @@ The bsonspec.org site is somewhat old school.
 
 [https://msgpack.org/index.html](https://msgpack.org/index.html)
 
-- language-neutral
-- platform-neutral
-- extensible
-
 ```
-// Example:
 ��name�Something�weight*�contents��widgets�cogs
 ```
 
-<div clas="notes">
+<div class="notes">
 Small integers are encoded into a single byte, and typical short strings require only one extra byte in addition to the strings themselves.
 </div>
 
@@ -110,17 +166,166 @@ Small integers are encoded into a single byte, and typical short strings require
 [https://developers.google.com/protocol-buffers/](https://developers.google.com/protocol-buffers/)
 
 - By Google
-- Uses schemas
 
 ```
-// Example:
 Something(Bwidgetscogs
 ```
 
 <div class="notes">
+- uses a schema
+
 There is not much documentation on the json flavor of scheme definition.
 
 With JSON as a config format, using nested data types requires they be defined within the same nested scope.
+</div>
+
+## Protobuf Schema (proto)
+
+```go
+syntax = "proto3";
+
+message SearchRequest {
+  string query = 1;
+  int32 page_number = 2;
+  int32 result_per_page = 3;
+}
+```
+
+<div class="notes">
+I did not use proto files.
+</div>
+
+## Protobuff Schema (json)
+
+```javascript
+const root = protobuf.Root.fromJSON({
+  nested: {
+    Friend: {
+      fields: {
+        id: {
+          type: 'int32',
+          id: 1,
+        },
+        name: {
+          type: 'string',
+          id: 2,
+        },
+      }
+    },
+    Example: {
+      fields: {
+        // Primary
+        id: {
+          type: 'string',
+          id: 1,
+        },
+        index: {
+          type: 'int32',
+          id: 2,
+        },
+        guid: {
+          type: 'string',
+          id: 3,
+        },
+        // Non-Primary
+        isActive: {
+          type: 'bool',
+          id: 20,
+        },
+        balance: {
+          type: 'string',
+          id: 21,
+        },
+        picture: {
+          type: 'string',
+          id: 22,
+        },
+        age: {
+          type: 'int32',
+          id: 23,
+        },
+        eyeColor: {
+          type: 'string',
+          id: 24,
+        },
+        name: {
+          type: 'string',
+          id: 25,
+        },
+        gender: {
+          type: 'string',
+          id: 26,
+        },
+        company: {
+          type: 'string',
+          id: 27,
+        },
+        email: {
+          type: 'string',
+          id: 28,
+        },
+        phone: {
+          type: 'string',
+          id: 29,
+        },
+        address: {
+          type: 'string',
+          id: 30,
+        },
+        about: {
+          type: 'string',
+          id: 31,
+        },
+        registered: {
+          type: 'string',
+          id: 32,
+        },
+        latitude: {
+          type: 'float',
+          id: 33,
+        },
+        longitude: {
+          type: 'float',
+          id: 34,
+        },
+        tags: {
+          type: 'string',
+          id: 35,
+          rule: 'repeated'
+        },
+        friends: {
+          id: 36,
+          rule: 'repeated',
+          type: 'Friend'
+        },
+        greeting: {
+          type: 'string',
+          id: 37,
+        },
+        favoriteFruit: {
+          type: 'string',
+          id: 38,
+        },
+      }
+    },
+    Examples: {
+      fields: {
+        data: {
+          type: 'Example',
+          id: 1,
+          rule: 'repeated'
+        }
+      }
+    }
+  }
+});
+```
+
+<div class="notes">
+JSON format is not documented very well.
+
+I had to guess at how the nesting worked.
+
 </div>
 
 ## Others (unimplemented here)

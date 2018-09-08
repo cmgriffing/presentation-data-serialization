@@ -1,0 +1,1 @@
+const { gzip } = require('node-gzip');

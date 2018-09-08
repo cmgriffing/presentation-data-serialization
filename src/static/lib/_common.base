@@ -1,1 +1,3 @@
+window.Benchmark = require('benchmark');
+
 window.Buffer = Buffer;

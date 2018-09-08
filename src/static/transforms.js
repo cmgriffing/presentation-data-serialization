@@ -1,11 +1,8 @@
-const avro = require('avsc');
 const xmljs = require('xml-js');
 const bencode = require('bencode');
 const BSON = require('bson');
 const msgpack = require('msgpack-lite');
-
 const protoSchema = require('./lib/protobuf.schema');
-
 const avroSchemaWrapper = require('./lib/avro.schema');
 
 // Setup
@@ -41,7 +38,7 @@ function transformXmlRequest(requestBody) {
     }
 
     resolve(xmljs.xml2js(`<data>${body}</data>`, {
-      compact: true
+      //compact: typeof window === 'undefined'
     }));
   })
 
@@ -49,7 +46,7 @@ function transformXmlRequest(requestBody) {
 
 function transformXmlResponse(responseBody) {
   return xmljs.js2xml(responseBody.data, {
-    compact: true
+      //compact: typeof window === 'undefined'
   });
 }
 
@@ -91,7 +88,7 @@ function transformProtobufResponse(responseBody) {
   return proto.encode(proto.create(responseBody)).finish();
 }
 
-module.exports = {
+const _exports = {
   request: {
     avro: transformAvroRequest,
     json: transformJsonRequest,
@@ -111,3 +108,9 @@ module.exports = {
     protobuf: transformProtobufResponse,
   }
 };
+
+try {
+  window.transforms = _exports;
+} catch(e) {
+  module.exports = _exports;
+}

@@ -1,4 +1,6 @@
-## Basics
+##
+
+<h1>Basics</h1>
 
 ## But, why?
 
@@ -18,7 +20,10 @@ Whether you are sending large or small data, the percentage of bytes saved is di
 Not quite.
 
 <div class="notes">
-Gzip levels the playing field. However:
+Gzip levels the playing field.
+
+However:
+
   - Browsers do not gzip data sent to the server
   - Some formats could still save data even after gzip
 </div>

@@ -1,9 +1,9 @@
-## Testing Methodology
+##
+
+<h1>Testing Methodology</h1>
 
 ## Different Object Sizes
 
-- tiny (62 bytes as JSON)
-- small (~1kb)
 - medium (~10kb)
 - large (~100kb)
 
@@ -17,24 +17,60 @@ graph: *pre-gzip* and *post-gzip*
 
 graph: *file size*
 
-## End-to-End (browser)
+##
 
-- Benchmark.js
-- in browser graphs
+<h1>Browser Runtimes</h1>
 
-## Browser Runtimes
+<div class="notes">
 
-- benchmark js
+Chrome only so far
+
+Take these with a grain of salt.
+</div>
+
+## Browser: Encoding 10K
+
+![](./assets/browser-encoding-10k.svg)
+
+## Browser: Encoding 100K
+
+![](./assets/browser-encoding-100k.svg)
+
+## Browser: Decoding 10K
+
+![](./assets/browser-decoding-10k.svg)
+
+## Browser: Decoding 100K
+
+![](./assets/browser-decoding-100k.svg)
 
 
-## Node Runtimes
 
-- Benchmark.js
+##
+
+<h1>Node CPU Runtime</h1>
 
 <div class="notes">
 Its important to note that Node optimizes for JSON.
 
 Other platforms might see results that favor JSON much less.
 </div>
+
+## Node: Encoding 10K
+
+![](./assets/encoding-10k.svg)
+
+## Node: Encoding 100K
+
+![](./assets/encoding-100k.svg)
+
+## Node: Decoding 10K
+
+![](./assets/decoding-10k.svg)
+
+## Node: Decoding 100K
+
+![](./assets/decoding-100k.svg)
+
 
 ---

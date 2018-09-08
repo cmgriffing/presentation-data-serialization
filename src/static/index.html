@@ -10,11 +10,18 @@
     <script src="/lib/bson.js"></script>
     <script src="/lib/msgpack.js"></script>
     <script src="/lib/protobuf.js"></script>
+    <script src="/lib/gzip.js"></script>
+    <script src="/lib/jsdom.js"></script>
+    <script src="/lib/d3.js"></script>
 
     <script src="/example-data-base.js"></script>
     <script src="/example-data-1k.js"></script>
     <script src="/example-data-10k.js"></script>
     <script src="/example-data-100k.js"></script>
+
+    <script src="/transforms-browser.js"></script>
+
+    <script src="/benchmarks.js"></script>
 
 
     <style>
@@ -36,17 +43,35 @@
     </style>
     <script src="https://d3js.org/d3.v3.min.js"></script>
 
-
-
   </head>
   <body>
     <h1>Planet Express</h1>
     <button class="send-shipment">Send Shipment</button>
     <button class="show-results">Show Results</button>
 
-    <div id="time-graph"></div>
+    <div id="browser-time-graphs"></div>
+    <div id="server-time-encoding-10k-graph">
+      <img src="/encoding-10k.svg" />
+    </div>
+    <div id="server-time-encoding-100k-graph">
+      <img src="/encoding-100k.svg" />
+    </div>
+    <div id="server-time-decoding-10k-graph">
+      <img src="/decoding-10k.svg" />
+    </div>
+    <div id="server-time-decoding-100k-graph">
+      <img src="/decoding-100k.svg" />
+    </div>
+    <div id="uncompressed-size-10k-graph"></div>
+    <div id="uncompressed-size-100k-graph"></div>
+    <div id="gzipped-size-10k-graph"></div>
+    <div id="gzipped-size-100k-graph"></div>
 
-    <script>
+
+    <div class="scratch"></div>
+
+    <script type="text/javascript">
+
 
       // Avro setup
       const avroSchema = window.avro10KSchema;
@@ -57,12 +82,12 @@
       // protobuf
       const proto = window.protobuf10KSchema;
 
-      const transforms = {};
+      const clickTransforms = {};
       CONSTANTS.FORMATS_ARRAY.map(format => {
         switch(format) {
 
           case CONSTANTS.FORMATS.JSON:
-            transforms[format] = {
+            clickTransforms[format] = {
               handleRequest: (shipment) => {
                 return JSON.stringify(shipment);
               },
@@ -73,7 +98,7 @@
             break;
 
           case CONSTANTS.FORMATS.AVRO:
-            transforms[format] = {
+            clickTransforms[format] = {
               handleRequest: (shipment) => {
                 return avroSchema.toBuffer(shipment);
               },
@@ -84,7 +109,7 @@
             break;
 
           case CONSTANTS.FORMATS.XML:
-            transforms[format] = {
+            clickTransforms[format] = {
               handleRequest: (shipment) => {
                 return xmljs.js2xml(shipment, {
                   compact: true
@@ -100,7 +125,7 @@
             break;
 
           case CONSTANTS.FORMATS.BENCODE:
-            transforms[format] = {
+            clickTransforms[format] = {
               handleRequest: (shipment) => {
                 return bencode.encode(shipment).toString();
               },
@@ -111,7 +136,7 @@
             break;
 
           case CONSTANTS.FORMATS.BSON:
-            transforms[format] = {
+            clickTransforms[format] = {
               handleRequest: (shipment) => {
                 return bson.serialize(shipment);
               },
@@ -124,7 +149,7 @@
             break;
 
           case CONSTANTS.FORMATS.MSGPACK:
-            transforms[format] = {
+            clickTransforms[format] = {
               handleRequest: (shipment) => {
                 return msgpack.encode(shipment);
               },
@@ -135,7 +160,7 @@
             break;
 
           case CONSTANTS.FORMATS.PROTOBUF:
-            transforms[format] = {
+            clickTransforms[format] = {
               handleRequest: (shipment) => {
                 return proto.encode(proto.create(shipment)).finish();
               },
@@ -147,95 +172,33 @@
         }
       });
 
-      console.log('transforms', transforms);
-
-      const RequestTimings = {};
-      const EncodeTimings = {};
-      const ParseTimings = {};
-
-      const addTiming = function(timingSet, format, timing) {
-        if(!timingSet[format]) {
-          timingSet[format] = [];
-        }
-        timingSet[format].push(timing);
-      }
-
-      const _getAverageTime = function(timingSet, format) {
-        let total = 0;
-        timingSet[format].map(timing => {
-          total += timing;
-        });
-
-        return total / timingSet[format].length;
-      };
-
-      window.getAverageTimes = function() {
-
-        const averageEncodings = [];
-        const averageRequests = [];
-        const averageParsings = [];
-
-        CONSTANTS.FORMATS_ARRAY.map((format) => {
-          const averageEncodingTime = _getAverageTime(EncodeTimings, format);
-          const averageRequestTime = _getAverageTime(RequestTimings, format);
-          const averageParseTime = _getAverageTime(ParseTimings, format);
-
-          averageEncodings.push({format, timing: averageEncodingTime});
-          averageRequests.push({format, timing: averageRequestTime});
-          averageParsings.push({format, timing: averageParseTime});
-
-        });
-
-        const sorter = function(a, b) {
-          if(a.timing < b.timing) {
-            return -1;
-          } else if(a.timing > b.timing) {
-            return 1;
-          } else {
-            return 0;
-          }
-        }
-
-        // console.log('Encoding: ', averageEncodings.sort(sorter));
-        // console.log('Requests: ', averageRequests.sort(sorter));
-        // console.log('Parsing: ', averageParsings.sort(sorter));
-
-        return {
-          averageEncodings,
-          averageRequests,
-          averageParsings,
-        };
-
-      }
-
       document.querySelector('.send-shipment')
         .addEventListener('click', async function(e) {
           try {
             const shipment = window.EXAMPLE_DATA_100K;
-            CONSTANTS.FORMATS_ARRAY.map(async format => {
+            [
+              '10K',
+              '100K'
+            ].map(size => {
+              const shipment = window[`EXAMPLE_DATA_${size}`];
+              CONSTANTS.FORMATS_ARRAY.map(async format => {
+                const body = clickTransforms[format].handleRequest(shipment);
 
-              const startEncode = performance.now();
-              const body = transforms[format].handleRequest(shipment);
-              const endEncode = performance.now();
-              addTiming(EncodeTimings, format, endEncode - startEncode);
+                console.log('parsing response', clickTransforms[format].handleAsyncResponse(body));
 
-              const startRequest = performance.now();
-              const result = await fetch(`${window.location.origin}/api/shipment`, {
-                method: 'POST',
-                body: body,
-                headers: {
-                    'Content-Type': 'application/octet-stream',
-                    'Serialization-Format': format,
-                },
-              });
-              const endRequest = performance.now();
-              addTiming(RequestTimings, format, endRequest - startRequest);
+                const result = await fetch(`${window.location.origin}/api/shipment`, {
+                  method: 'POST',
+                  body: body,
+                  headers: {
+                      'Content-Type': 'application/octet-stream',
+                      'Serialization-Format': format,
+                  },
+                });
 
-              const startParse = performance.now();
-              console.log(`Handling ${format} response: `, await transforms[format].handleAsyncResponse(result));
-              const endParse = performance.now();
-              addTiming(ParseTimings, format, endParse - startParse);
-            })
+                console.log(`Handling ${format} response: `, await clickTransforms[format].handleAsyncResponse(result));
+              })
+            });
+
 
           } catch(e) {
             console.log('e', e);
@@ -243,6 +206,7 @@
 
         });
 
+        /*
         document.querySelector('.show-results').addEventListener('click', function() {
           const { averageEncodings, averageRequests, averageParsings } = window.getAverageTimes();
           const data = averageEncodings.map((item, index) => {
@@ -265,7 +229,104 @@
             }
           });
 
-          renderGraph('#time-graph', data);
+        });*/
+
+        const dataArray = [
+          // {
+          //   name: '1K',
+          //   data: ExampleData1K
+          // },
+          {
+            name: '10K',
+            data: window.EXAMPLE_DATA_10K
+          },
+          {
+            name: '100K',
+            data: window.EXAMPLE_DATA_100K
+          },
+        ];
+
+
+        // renderGraph(
+        //   '#browser-time-graph',
+        //    [{"format":"protobuf","values":[{"metric":"Encoding 10K","value":0.00011630899735405262},{"metric":"Encoding 100K","value":0.0008875},{"metric":"Decoding 10K","value":0.00017057312149336686},{"metric":"Decoding 100K","value":0.001487450980392157}]},{"format":"msgpack","values":[{"metric":"Encoding 10K","value":0.00023195141570231327},{"metric":"Encoding 100K","value":0.0017936549847304994},{"metric":"Decoding 10K","value":0.00024279580181618522},{"metric":"Decoding 100K","value":0.002712074303405573}]},{"format":"avro","values":[{"metric":"Encoding 10K","value":0.0002796747492168356},{"metric":"Encoding 100K","value":0.002453947368421053},{"metric":"Decoding 10K","value":0.00020990723397428177},{"metric":"Decoding 100K","value":0.0019466666666666666}]},{"format":"bson","values":[{"metric":"Encoding 10K","value":0.00020512820512820504},{"metric":"Encoding 100K","value":0.0017539784946236563},{"metric":"Decoding 10K","value":0.0002824332213061667},{"metric":"Decoding 100K","value":0.002726006191950464}]},{"format":"json","values":[{"metric":"Encoding 10K","value":0.00006084804398670148},{"metric":"Encoding 100K","value":0.0004162698412698412},{"metric":"Decoding 10K","value":0.00008163918029430902},{"metric":"Decoding 100K","value":0.000751528132870221}]}]
+        // )
+
+        // renderDifferenceGraph(
+        //   '#server-time-encoding-10k-graph',
+        //   'ms',
+        //   [{"format":"protobuf","values":[{"metric":"Encoding 100K","value":0.0005389110454770569}]},{"format":"msgpack","values":[{"metric":"Encoding 100K","value":0.0013076506897328362}]},{"format":"avro","values":[{"metric":"Encoding 100K","value":0.0004295160378220565}]},{"format":"bencode","values":[{"metric":"Encoding 100K","value":0.0032238944424715895}]},{"format":"bson","values":[{"metric":"Encoding 100K","value":0.0013572010133091341}]},{"format":"xml","values":[{"metric":"Encoding 100K","value":0.000004268849204534224}]},{"format":"json","values":[{"metric":"Encoding 100K","value":0.0004076345639875934}]}]
+        // );
+        // renderDifferenceGraph(
+        //   '#server-time-encoding-100k-graph',
+        //   'ms',
+        //   [{"format":"protobuf","values":[{"metric":"Encoding 100K","value":0.0005389110454770569}]},{"format":"msgpack","values":[{"metric":"Encoding 100K","value":0.0013076506897328362}]},{"format":"avro","values":[{"metric":"Encoding 100K","value":0.0004295160378220565}]},{"format":"bencode","values":[{"metric":"Encoding 100K","value":0.0032238944424715895}]},{"format":"bson","values":[{"metric":"Encoding 100K","value":0.0013572010133091341}]},{"format":"xml","values":[{"metric":"Encoding 100K","value":0.000004268849204534224}]},{"format":"json","values":[{"metric":"Encoding 100K","value":0.0004076345639875934}]}]
+        // );
+        // renderDifferenceGraph(
+        //   '#server-time-decoding-10k-graph',
+        //   'ms',
+        //   [{"format":"protobuf","values":[{"metric":"Decoding 10K","value":0.00003330009272885418}]},{"format":"msgpack","values":[{"metric":"Decoding 10K","value":0.0002604582227709717}]},{"format":"avro","values":[{"metric":"Decoding 10K","value":0.000031205675376576825}]},{"format":"bencode","values":[{"metric":"Decoding 10K","value":0.00013588729738644935}]},{"format":"bson","values":[{"metric":"Decoding 10K","value":0.00017491484236467568}]},{"format":"json","values":[{"metric":"Decoding 10K","value":0.0000646937403194134}]},{"format":"xml","values":[{"metric":"Decoding 10K","value":0.00005306701825067262}]}]
+        // );
+        // renderDifferenceGraph(
+        //   '#server-time-decoding-100k-graph',
+        //   'ms',
+        //   [{"format":"protobuf","values":[{"metric":"Decoding 100K","value":0.00033339606556927675}]},{"format":"msgpack","values":[{"metric":"Decoding 100K","value":0.0024709593030303044}]},{"format":"avro","values":[{"metric":"Decoding 100K","value":0.00030698682409100895}]},{"format":"bencode","values":[{"metric":"Decoding 100K","value":0.0012688921872722177}]},{"format":"bson","values":[{"metric":"Decoding 100K","value":0.0016664389632925472}]},{"format":"json","values":[{"metric":"Decoding 100K","value":0.0006768268820029595}]},{"format":"xml","values":[{"metric":"Decoding 100K","value":0.0000499391988266654}]}]
+        // );
+
+        // renderDifferenceGraph(
+        //   '#uncompressed-size-10k-graph',
+        //   'bytes',
+        //   [{"format":"protobuf","values":[{"metric":"10K","value":8210}]},{"format":"msgpack","values":[{"metric":"10K","value":9623}]},{"format":"avro","values":[{"metric":"10K","value":7562}]},{"format":"bson","values":[{"metric":"10K","value":11546}]},{"format":"json","values":[{"metric":"10K","value":10841}]}]
+        // );
+        // renderDifferenceGraph(
+        //   '#uncompressed-size-100k-graph',
+        //   'bytes',
+        //   [{"format":"protobuf","values":[{"metric":"100K","value":77835}]},{"format":"msgpack","values":[{"metric":"100K","value":91357}]},{"format":"avro","values":[{"metric":"100K","value":71633}]},{"format":"bson","values":[{"metric":"100K","value":109810}]},{"format":"json","values":[{"metric":"100K","value":103045}]}]
+        // );
+
+        // renderDifferenceGraph(
+        //   '#gzipped-size-10k-graph',
+        //   'bytes',
+        //   [{"format":"protobuf","values":[{"metric":"10K","value":3847}]},{"format":"msgpack","values":[{"metric":"10K","value":3991}]},{"format":"avro","values":[{"metric":"10K","value":3548}]},{"format":"bson","values":[{"metric":"10K","value":4441}]},{"format":"json","values":[{"metric":"10K","value":3810}]}]
+        // );
+
+        // renderDifferenceGraph(
+        //   '#gzipped-size-100k-graph',
+        //   'bytes',
+        //   [{"format":"protobuf","values":[{"metric":"100K","value":30078}]},{"format":"msgpack","values":[{"metric":"100K","value":31200}]},{"format":"avro","values":[{"metric":"100K","value":28553}]},{"format":"bson","values":[{"metric":"100K","value":33801}]},{"format":"json","values":[{"metric":"100K","value":29879}]}]
+        // );
+
+        // we do not need to run this on every page load
+        runBenchmarks(
+          {
+            FORMATS_ARRAY: CONSTANTS.FORMATS_ARRAY,
+            dataArray,
+            transforms,
+            encodeSuite: new Benchmark.Suite(),
+            decodeSuite: new Benchmark.Suite(),
+          },
+          {
+            d3: window.d3,
+            jsdom: window.jsdom
+          }
+        ).then(results => {
+          console.log('results', results);
+          const graphsWrapper = document.querySelector('#browser-time-graphs');
+          graphsWrapper.innerHTML = '';
+
+          results.map(result => {
+            const header = document.createElement('h3');
+            header.innerHTML = result.fileName;
+
+            const wrapper = document.createElement('div');
+            wrapper.innerHTML = result.graph;
+            wrapper.id = result.fileName;
+
+            graphsWrapper.appendChild(header);
+            graphsWrapper.appendChild(wrapper);
+          });
+
+          // document.querySelector('.scratch').innerHTML = JSON.stringify(results);
         });
 
         function renderGraph(elementSelector, data) {
@@ -349,6 +410,138 @@
               .duration(1000)
               .attr("y", function(d) { return y(d.value); })
               .attr("height", function(d) { return height - y(d.value); });
+
+          //Legend
+          var legend = svg.selectAll(".legend")
+              .data(data[0].values.map(function(d) { return d.metric; }).reverse())
+          .enter().append("g")
+              .attr("class", "legend")
+              .attr("transform", function(d,i) { return "translate(0," + i * 20 + ")"; })
+              .style("opacity","0");
+
+          legend.append("rect")
+              .attr("x", width - 18)
+              .attr("width", 18)
+              .attr("height", 18)
+              .style("fill", function(d) { return color(d); });
+
+          legend.append("text")
+              .attr("x", width - 24)
+              .attr("y", 9)
+              .attr("dy", ".35em")
+              .style("text-anchor", "end")
+              .text(function(d) {return d; });
+
+          legend.transition().duration(500).delay(function(d,i){ return 1300 + 100 * i; }).style("opacity","1");
+
+        }
+
+        function renderDifferenceGraph(elementSelector, yAxisLabel, data) {
+
+          data = JSON.parse(JSON.stringify(data));
+          const jsonData = data.pop();
+          const baseline = jsonData.values[0].value;
+
+          document.querySelector(elementSelector).innerHTML = '';
+
+          var margin = {top: 20, right: 160, bottom: 30, left: 120},
+              width = 960 - margin.left - margin.right,
+              height = 500 - margin.top - margin.bottom;
+
+          const fontSize = 24;
+
+          var x0 = d3.scale.ordinal()
+              .rangeRoundBands([0, width], .1);
+
+          var x1 = d3.scale.ordinal();
+
+          var y = d3.scale.linear()
+              .range([height, 0]);
+
+          var xAxis = d3.svg.axis()
+              .scale(x0)
+              .tickSize(0)
+              .orient("bottom");
+
+          var yAxis = d3.svg.axis()
+              .scale(y)
+              .orient("left");
+
+          var color = d3.scale.ordinal()
+              .range(["#ca0020","#f4a582","#d5d5d5","#92c5de","#0571b0"]);
+
+          var svg = d3.select(elementSelector).append("svg")
+              .attr("width", width + margin.left + margin.right)
+              .attr("height", height + margin.top + margin.bottom)
+              .style("font-size", `${fontSize}px`)
+            .append("g")
+              .attr("transform", "translate(" + margin.left + "," + margin.top + ")");
+
+          var formatNames = data.map(function(d) { return d.format; });
+          var metricNames = data[0].values.map(function(d) { return d.metric; });
+
+          x0.domain(formatNames);
+          x1.domain(metricNames).rangeRoundBands([0, x0.rangeBand()]);
+          y.domain(d3.extent(data, function(format) {
+            return format.values[0].value;
+          })).nice();
+
+          svg.append("g")
+              .attr("class", "x axis")
+              .attr("transform", "translate(0," + height + ")")
+              .call(xAxis);
+
+          svg.append("g")
+              .attr("class", "y axis")
+              .style('opacity','0')
+              .call(yAxis)
+          .append("text")
+              .attr("transform", "rotate(-90)")
+              .attr("y", 6)
+              .attr("dy", ".71em")
+              .style("text-anchor", "end")
+              .style('font-weight','bold')
+              .text(yAxisLabel);
+
+          svg.select('.y').transition().duration(500).delay(1300).style('opacity','1');
+
+          var slice = svg.selectAll(".slice")
+              .data(data)
+              .enter().append("g")
+              .attr("class", "g")
+              .attr("transform",function(d) { return "translate(" + x0(d.format) + ",0)"; });
+
+          slice.selectAll("rect")
+              .data(function(d) { return d.values; })
+          .enter().append("rect")
+              .attr("width", x1.rangeBand())
+              .attr("x", function(d) { return x1(d.metric); })
+              .style("fill", function(d) { return color(d.metric) })
+              .attr("y", function(d) {
+                if (d.value > baseline) {
+                  return y(d.value);
+                } else {
+                  return y(baseline);
+                }
+              })
+              .attr("height", function(d) {
+                return Math.abs(y(d.value) - y(baseline));
+              });
+
+          // Baseline
+          svg.append("rect")
+            .attr("width", width)
+            .attr("height", 2)
+            .style("fill", function(d) { return '#0000FF'; })
+            .attr("x", function(d) { return x1(0); })
+            .attr("y", function(d) { return y(baseline) - 1; });
+
+          svg.append("text")
+            .attr("x", width)
+            .attr("y", function(d) { return y(baseline) - 6; })
+            .text(`JSON \r\n ${baseline}`);
+
+
 
           //Legend
           var legend = svg.selectAll(".legend")
