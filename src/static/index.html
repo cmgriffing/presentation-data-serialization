@@ -67,6 +67,8 @@
     <div id="gzipped-size-10k-graph"></div>
     <div id="gzipped-size-100k-graph"></div>
 
+    <div id="lib-size-graph"></div>
+    <div id="lib-gzip-size-graph"></div>
 
     <div class="scratch"></div>
 
@@ -273,69 +275,86 @@
         //   [{"format":"protobuf","values":[{"metric":"Decoding 100K","value":0.00033339606556927675}]},{"format":"msgpack","values":[{"metric":"Decoding 100K","value":0.0024709593030303044}]},{"format":"avro","values":[{"metric":"Decoding 100K","value":0.00030698682409100895}]},{"format":"bencode","values":[{"metric":"Decoding 100K","value":0.0012688921872722177}]},{"format":"bson","values":[{"metric":"Decoding 100K","value":0.0016664389632925472}]},{"format":"json","values":[{"metric":"Decoding 100K","value":0.0006768268820029595}]},{"format":"xml","values":[{"metric":"Decoding 100K","value":0.0000499391988266654}]}]
         // );
 
-        // renderDifferenceGraph(
-        //   '#uncompressed-size-10k-graph',
-        //   'bytes',
-        //   [{"format":"protobuf","values":[{"metric":"10K","value":8210}]},{"format":"msgpack","values":[{"metric":"10K","value":9623}]},{"format":"avro","values":[{"metric":"10K","value":7562}]},{"format":"bson","values":[{"metric":"10K","value":11546}]},{"format":"json","values":[{"metric":"10K","value":10841}]}]
-        // );
-        // renderDifferenceGraph(
-        //   '#uncompressed-size-100k-graph',
-        //   'bytes',
-        //   [{"format":"protobuf","values":[{"metric":"100K","value":77835}]},{"format":"msgpack","values":[{"metric":"100K","value":91357}]},{"format":"avro","values":[{"metric":"100K","value":71633}]},{"format":"bson","values":[{"metric":"100K","value":109810}]},{"format":"json","values":[{"metric":"100K","value":103045}]}]
-        // );
+        renderDifferenceGraph(
+          '#uncompressed-size-10k-graph',
+          'bytes',
+          [{"format":"protobuf","values":[{"metric":"10K","value":8210}]},{"format":"avro","values":[{"metric":"10K","value":7562}]},{"format":"msgpack","values":[{"metric":"10K","value":9623}]},{"format":"bson","values":[{"metric":"10K","value":11546}]},{"format":"bencode","values":[{"metric":"10K","value":10366}]},{"format":"xml","values":[{"metric":"10K","value":13311}]},{"format":"json","values":[{"metric":"10K","value":10841}]}]
+        );
 
-        // renderDifferenceGraph(
-        //   '#gzipped-size-10k-graph',
-        //   'bytes',
-        //   [{"format":"protobuf","values":[{"metric":"10K","value":3847}]},{"format":"msgpack","values":[{"metric":"10K","value":3991}]},{"format":"avro","values":[{"metric":"10K","value":3548}]},{"format":"bson","values":[{"metric":"10K","value":4441}]},{"format":"json","values":[{"metric":"10K","value":3810}]}]
-        // );
+        renderDifferenceGraph(
+          '#uncompressed-size-100k-graph',
+          'bytes',
+          [{"format":"protobuf","values":[{"metric":"100K","value":77835}]},{"format":"avro","values":[{"metric":"100K","value":71633}]},{"format":"msgpack","values":[{"metric":"100K","value":91357}]},{"format":"bson","values":[{"metric":"100K","value":109810}]},{"format":"bencode","values":[{"metric":"100K","value":98462}]},{"format":"xml","values":[{"metric":"100K","value":126843}]},{"format":"json","values":[{"metric":"100K","value":103045}]}]
+        );
 
-        // renderDifferenceGraph(
-        //   '#gzipped-size-100k-graph',
-        //   'bytes',
-        //   [{"format":"protobuf","values":[{"metric":"100K","value":30078}]},{"format":"msgpack","values":[{"metric":"100K","value":31200}]},{"format":"avro","values":[{"metric":"100K","value":28553}]},{"format":"bson","values":[{"metric":"100K","value":33801}]},{"format":"json","values":[{"metric":"100K","value":29879}]}]
-        // );
+        renderDifferenceGraph(
+          '#gzipped-size-10k-graph',
+          'bytes',
+          [{"format":"protobuf","values":[{"metric":"10K","value":3847}]},{"format":"avro","values":[{"metric":"10K","value":3548}]},{"format":"msgpack","values":[{"metric":"10K","value":3991}]},{"format":"bson","values":[{"metric":"10K","value":4441}]},{"format":"bencode","values":[{"metric":"10K","value":3813}]},{"format":"xml","values":[{"metric":"10K","value":3910}]},{"format":"json","values":[{"metric":"10K","value":3810}]}]
+        );
+
+        renderDifferenceGraph(
+          '#gzipped-size-100k-graph',
+          'bytes',
+          [{"format":"protobuf","values":[{"metric":"100K","value":30078}]},{"format":"avro","values":[{"metric":"100K","value":28553}]},{"format":"msgpack","values":[{"metric":"100K","value":31200}]},{"format":"bson","values":[{"metric":"100K","value":33801}]},{"format":"bencode","values":[{"metric":"100K","value":29817}]},{"format":"xml","values":[{"metric":"100K","value":30827}]},{"format":"json","values":[{"metric":"100K","value":29879}]}]
+        );
+
+        renderGraph(
+          '#lib-size-graph',
+          'bytes',
+          [{"format":"avro","values":[{"metric":"Uncompressed","value":198304}]},{"format":"bencode","values":[{"metric":"Uncompressed","value":62406}]},{"format":"bson","values":[{"metric":"Uncompressed","value":280742}]},{"format":"gzip","values":[{"metric":"Uncompressed","value":420996}]},{"format":"msgpack","values":[{"metric":"Uncompressed","value":297598}]},{"format":"protobuf","values":[{"metric":"Uncompressed","value":233666}]},{"format":"xml","values":[{"metric":"Uncompressed","value":244089}]}]
+        );
+
+        renderGraph(
+          '#lib-gzip-size-graph',
+          'bytes',
+          [{"format":"avro","values":[{"metric":"Gzipped","value":49698}]},{"format":"bencode","values":[{"metric":"Gzipped","value":15086}]},{"format":"bson","values":[{"metric":"Gzipped","value":60013}]},{"format":"gzip","values":[{"metric":"Gzipped","value":103297}]},{"format":"msgpack","values":[{"metric":"Gzipped","value":70808}]},{"format":"protobuf","values":[{"metric":"Gzipped","value":47735}]},{"format":"xml","values":[{"metric":"Gzipped","value":57433}]}]
+        );
+
+
 
         // we do not need to run this on every page load
-        runBenchmarks(
-          {
-            FORMATS_ARRAY: CONSTANTS.FORMATS_ARRAY,
-            dataArray,
-            transforms,
-            encodeSuite: new Benchmark.Suite(),
-            decodeSuite: new Benchmark.Suite(),
-          },
-          {
-            d3: window.d3,
-            jsdom: window.jsdom
-          }
-        ).then(results => {
-          console.log('results', results);
-          const graphsWrapper = document.querySelector('#browser-time-graphs');
-          graphsWrapper.innerHTML = '';
+        // runBenchmarks(
+        //   {
+        //     FORMATS_ARRAY: CONSTANTS.FORMATS_ARRAY,
+        //     dataArray,
+        //     transforms,
+        //     encodeSuite: new Benchmark.Suite(),
+        //     decodeSuite: new Benchmark.Suite(),
+        //   },
+        //   {
+        //     d3: window.d3,
+        //     jsdom: window.jsdom
+        //   }
+        // ).then(results => {
+        //   console.log('results', results);
+        //   const graphsWrapper = document.querySelector('#browser-time-graphs');
+        //   graphsWrapper.innerHTML = '';
 
-          results.map(result => {
-            const header = document.createElement('h3');
-            header.innerHTML = result.fileName;
+        //   results.map(result => {
+        //     const header = document.createElement('h3');
+        //     header.innerHTML = result.fileName;
 
-            const wrapper = document.createElement('div');
-            wrapper.innerHTML = result.graph;
-            wrapper.id = result.fileName;
+        //     const wrapper = document.createElement('div');
+        //     wrapper.innerHTML = result.graph;
+        //     wrapper.id = result.fileName;
 
-            graphsWrapper.appendChild(header);
-            graphsWrapper.appendChild(wrapper);
-          });
+        //     graphsWrapper.appendChild(header);
+        //     graphsWrapper.appendChild(wrapper);
+        //   });
 
-          // document.querySelector('.scratch').innerHTML = JSON.stringify(results);
-        });
+        //   // document.querySelector('.scratch').innerHTML = JSON.stringify(results);
+        // });
 
-        function renderGraph(elementSelector, data) {
+        function renderGraph(elementSelector, yAxisLabel, data) {
 
           document.querySelector(elementSelector).innerHTML = '';
 
-          var margin = {top: 20, right: 20, bottom: 30, left: 40},
+          var margin = {top: 20, right: 160, bottom: 30, left: 120},
               width = 960 - margin.left - margin.right,
               height = 500 - margin.top - margin.bottom;
+
+          const fontSize = 24;
 
           var x0 = d3.scale.ordinal()
               .rangeRoundBands([0, width], .1);
@@ -360,6 +379,7 @@
           var svg = d3.select(elementSelector).append("svg")
               .attr("width", width + margin.left + margin.right)
               .attr("height", height + margin.top + margin.bottom)
+              .style("font-size", `${fontSize}px`)
             .append("g")
               .attr("transform", "translate(" + margin.left + "," + margin.top + ")");
 
@@ -385,7 +405,7 @@
               .attr("dy", ".71em")
               .style("text-anchor", "end")
               .style('font-weight','bold')
-              .text("ms");
+              .text(yAxisLabel);
 
           svg.select('.y').transition().duration(500).delay(1300).style('opacity','1');
 
@@ -493,7 +513,7 @@
 
           svg.append("g")
               .attr("class", "y axis")
-              .style('opacity','0')
+              .style('opacity','1')
               .call(yAxis)
           .append("text")
               .attr("transform", "rotate(-90)")
@@ -502,8 +522,6 @@
               .style("text-anchor", "end")
               .style('font-weight','bold')
               .text(yAxisLabel);
-
-          svg.select('.y').transition().duration(500).delay(1300).style('opacity','1');
 
           var slice = svg.selectAll(".slice")
               .data(data)
@@ -548,8 +566,7 @@
               .data(data[0].values.map(function(d) { return d.metric; }).reverse())
           .enter().append("g")
               .attr("class", "legend")
-              .attr("transform", function(d,i) { return "translate(0," + i * 20 + ")"; })
-              .style("opacity","0");
+              .attr("transform", function(d,i) { return "translate(0," + i * 20 + ")"; });
 
           legend.append("rect")
               .attr("x", width - 18)
@@ -563,8 +580,6 @@
               .attr("dy", ".35em")
               .style("text-anchor", "end")
               .text(function(d) {return d; });
-
-          legend.transition().duration(500).delay(function(d,i){ return 1300 + 100 * i; }).style("opacity","1");
 
         }
     </script>

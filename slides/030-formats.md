@@ -173,6 +173,7 @@ Something(Bwidgetscogs
 
 <div class="notes">
 - uses a schema
+- excels with numerical data
 
 There is not much documentation on the json flavor of scheme definition.
 

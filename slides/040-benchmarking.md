@@ -1,3 +1,10 @@
+<!--
+
+Synopsis: There are alternatives to JSON for sending data from client to server or between servers. What do they do and what do they look like? What are their benefits?Payload size? Encoding or Decoding speed? Let's find out. JSON is probably sufficient for most cases, but let's try and find the edge cases where you might want improvement.
+
+-->
+
+
 ##
 
 <h1>Testing Methodology</h1>
@@ -9,13 +16,33 @@
 
 ## Metrics
 
-## Content-Length
+## Content-Length (Uncompressed)
 
-graph: *pre-gzip* and *post-gzip*
+
+<div class="col-2">
+  ![](./assets/size-10k.svg)
+</div>
+<div class="col-2">
+  ![](./assets/size-100k.svg)
+</div>
+
+## Content-Length (Gzipped)
+
+<div class="col-2">
+  ![](./assets/gzip-size-10k.svg)
+</div>
+<div class="col-2">
+  ![](./assets/gzip-size-100k.svg)
+</div>
 
 ## Library overhead
 
-graph: *file size*
+<div class="col-2">
+  ![](./assets/lib-size.svg)
+</div>
+<div class="col-2">
+  ![](./assets/lib-gzip-size.svg)
+</div>
 
 ##
 
@@ -72,5 +99,24 @@ Other platforms might see results that favor JSON much less.
 
 ![](./assets/decoding-100k.svg)
 
+
+##
+
+<h1>Other Languages</h1>
+
+## Go
+
+[https://github.com/alecthomas/go_serialization_benchmarks](https://github.com/alecthomas/go_serialization_benchmarks)
+
+## Java
+
+![](./assets/java-performance.png)
+
+[https://dzone.com/articles/is-protobuf-5x-faster-than-json](https://dzone.com/articles/is-protobuf-5x-faster-than-json)
+
+<div class="notes">
+- 2-part series
+- shows Java has some JSON libraries that are faster than protobuf for general data
+</div>
 
 ---

@@ -10,4 +10,13 @@
     background: white;
   }
 
+  .reveal section img {
+    max-height: 30vh;
+  }
+
+  .col-2 {
+    width: 50%;
+    float: left;
+  }
+
 </style>
