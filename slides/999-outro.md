@@ -12,6 +12,7 @@
 
   .reveal section img {
     max-height: 30vh;
+    background: #FFF;
   }
 
   .col-2 {
