@@ -114,23 +114,50 @@ Basics
 </section>
 <section id="why-contd." class="level2">
 <h2>Why? (contd.)</h2>
+<p>Thoughts going into this:</p>
 <ul>
-<li>Save on bandwidth costs</li>
-<li>Possibly save on cpu runtime</li>
+<li>save on bandwidth</li>
+<li>save on cpu usage</li>
 </ul>
 <aside class="notes">
-<p>Whether you are sending large or small data, the percentage of bytes saved is directly proportional to your end of month bandwidth cost.</p>
+<p>These are just my initial thoughts</p>
+<p>We will try and find out whether they are valid.</p>
 </aside>
 </section>
 <section id="does-gzip-solve-all-these-problems" class="level2">
 <h2>Does Gzip solve all these problems?</h2>
 <p>Not quite.</p>
+<p>Gzip from the client to server is not recommended. <a href="https://stackoverflow.com/a/48572297" class="uri">https://stackoverflow.com/a/48572297</a></p>
 <aside class="notes">
-<p>Gzip levels the playing field.</p>
+<p>Gzip levels the playing field from the server to client.</p>
 <p>However:</p>
 <ul>
-<li>Browsers do not gzip data sent to the server</li>
 <li>Some formats could still save data even after gzip</li>
+<li>Browsers do not gzip data sent to the server by default
+<ul>
+<li>most places like AWS or even DigitalOcean do not charge for inbound traffic.</li>
+</ul></li>
+</ul>
+</aside>
+</section>
+<section id="examples-of-scale" class="level2">
+<h2>Examples of Scale</h2>
+<div class="col-2">
+<p><img data-src="./assets/netflix-api.jpeg" /> <a href="https://medium.com/netflix-techblog/redesigning-the-netflix-api-db5a7221fcff">Link</a></p>
+</div>
+<div class="col-2">
+<p><img data-src="./assets/mailchimp-api.png" /> <a href="https://blog.mailchimp.com/10m-api-calls-per-day-more/">Link</a></p>
+</div>
+<aside class="notes">
+<p>Reducing bandwith costs only makes sense at scale</p>
+<p>EG…</p>
+<p>As of 2011:</p>
+<ul>
+<li>Netflix received 20 billion http requests
+<ul>
+<li>using terrible math, we can estimate that an average response is 5kb</li>
+<li>and from there they are paying 8k per month just for outbound data</li>
+</ul></li>
 </ul>
 </aside>
 </section>
@@ -169,6 +196,17 @@ Formats
 <a class="sourceLine" id="cb2-7" data-line-number="7"><span class="kw">&lt;/root&gt;</span></a></code></pre></div>
 <aside class="notes">
 <p>Nobody wants to use XML, but it really is better suited for encoding SVG than anything else.</p>
+</aside>
+</section>
+<section id="warning" class="level2">
+<h2>Warning</h2>
+<p>There be <strike>dragons</strike> binary</p>
+<p>The following string representations are only for visualization purposes.</p>
+<aside class="notes">
+<p>The string representations you will see are just that.</p>
+<p>It is a utf8 encoding of binary data.</p>
+<p>In many cases doing such stringification will corrupt the data.</p>
+<p>This is only for visualization purposes.</p>
 </aside>
 </section>
 <section id="avro" class="level2">
@@ -463,7 +501,7 @@ Somethingweight*contents 0widgets1cogs</code></pre>
 
 <!--
 
-Synopsis: There are alternatives to JSON for sending data from client to server or between servers. What do they do and what do they look like? What are their benefits?Payload size? Encoding or Decoding speed? Let's find out. JSON is probably sufficient for most cases, but let's try and find the edge cases where you might want improvement.
+Synopsis: There are alternatives to JSON for sending data from client to server or between servers. What do they do and what do they look like? What are their benefits? Payload size? Encoding or Decoding speed? Let's find out. JSON is probably sufficient for most cases, but let's try and find the edge cases where you might want improvement.
 
 -->
 <section id="section-2" class="level2">
@@ -515,21 +553,33 @@ Testing Methodology
 Browser Runtimes
 </h1>
 <aside class="notes">
-<p>Chrome only so far</p>
+<p>Chrome only so far in graphs.</p>
+<p>Cursory testing in firefox and desktop safari showed similar results.</p>
 <p>Take these with a grain of salt.</p>
 </aside>
 </section>
 <section id="browser-encoding-10k" class="level2">
 <h2>Browser: Encoding 10K</h2>
 <p><img data-src="./assets/browser-encoding-10k.svg" /></p>
+<aside class="notes">
+<p>XML seems to be bugged.</p>
+<p>Bencode is super slow by comparison</p>
+</aside>
 </section>
 <section id="browser-encoding-100k" class="level2">
 <h2>Browser: Encoding 100K</h2>
 <p><img data-src="./assets/browser-encoding-100k.svg" /></p>
+<aside class="notes">
+<p>XML still bugged and bencode still slow.</p>
+<p>Scaling seems to be close to linear</p>
+</aside>
 </section>
 <section id="browser-decoding-10k" class="level2">
 <h2>Browser: Decoding 10K</h2>
 <p><img data-src="./assets/browser-decoding-10k.svg" /></p>
+<aside class="notes">
+<p>Not much has changed</p>
+</aside>
 </section>
 <section id="browser-decoding-100k" class="level2">
 <h2>Browser: Decoding 100K</h2>
@@ -541,13 +591,16 @@ Browser Runtimes
 Node CPU Runtime
 </h1>
 <aside class="notes">
-<p>Its important to note that Node optimizes for JSON.</p>
+<p>Its important to note that Node optimizes for JSON. But not as much as the browser</p>
 <p>Other platforms might see results that favor JSON much less.</p>
 </aside>
 </section>
 <section id="node-encoding-10k" class="level2">
 <h2>Node: Encoding 10K</h2>
 <p><img data-src="./assets/encoding-10k.svg" /></p>
+<aside class="notes">
+<p>Still nothing faster</p>
+</aside>
 </section>
 <section id="node-encoding-100k" class="level2">
 <h2>Node: Encoding 100K</h2>
@@ -556,6 +609,9 @@ Node CPU Runtime
 <section id="node-decoding-10k" class="level2">
 <h2>Node: Decoding 10K</h2>
 <p><img data-src="./assets/decoding-10k.svg" /></p>
+<aside class="notes">
+<p>We start to see some change</p>
+</aside>
 </section>
 <section id="node-decoding-100k" class="level2">
 <h2>Node: Decoding 100K</h2>
@@ -569,7 +625,12 @@ Other Languages
 </section>
 <section id="go" class="level2">
 <h2>Go</h2>
+<p><img data-src="./assets/go-benchmark-results.png" /></p>
 <p><a href="https://github.com/alecthomas/go_serialization_benchmarks" class="uri">https://github.com/alecthomas/go_serialization_benchmarks</a></p>
+<aside class="notes">
+<p>protobuf, msgpack, gencode, and some others…</p>
+<p>outperform the available go json libraries. (almost by an order of magnitude)</p>
+</aside>
 </section>
 <section id="java" class="level2">
 <h2>Java</h2>
@@ -578,8 +639,66 @@ Other Languages
 <aside class="notes">
 <ul>
 <li>2-part series</li>
-<li>shows Java has some JSON libraries that are faster than protobuf for general data</li>
+<li>shows Java has some JSON libraries that are faster than protobuf for general data
+<ul>
+<li>they do runtime schema generation and caching</li>
+</ul></li>
 </ul>
+</aside>
+</section>
+</section>
+<section class="slide level1">
+
+<section id="section-6" class="level2">
+<h2></h2>
+<h1>
+Summary
+</h1>
+</section>
+<section id="browser-speed" class="level2">
+<h2>Browser Speed</h2>
+<p><img data-src="./assets/jason-dancing-2.gif" /></p>
+<p>Nothing beats JSON</p>
+<aside class="notes">
+<p>Browsers are heavily optimized for json, even mobile browsers</p>
+</aside>
+</section>
+<section id="desktop-browser-inbound-data" class="level2">
+<h2>Desktop Browser Inbound Data</h2>
+<p><img data-src="./assets/jason-unimpressed.gif" /></p>
+<p>You can save 8% with Avro (after gzip)</p>
+<aside class="notes">
+<p>Using the earlier Netflix BS math, using numbers from 2011: - They could save $700 per month</p>
+<p>Protobuf is slightly heavier than json.</p>
+</aside>
+</section>
+<section id="desktop-browser-outbound-data" class="level2">
+<h2>Desktop Browser Outbound Data</h2>
+<p><img data-src="./assets/jason-blowing-up.gif" /></p>
+<p>You can save up to ~30% with Avro <br> but that data is free anyway</p>
+<aside class="notes">
+<p>Protobuf saves about 24% compared to JSON</p>
+</aside>
+</section>
+<section id="mobile-data" class="level2">
+<h2>Mobile Data</h2>
+<p>Data is not free for the user (in most cases)</p>
+<ul>
+<li>mobile games</li>
+<li>realtime stock or cryptocurrency data</li>
+<li>bandwidth limited IoT</li>
+</ul>
+</section>
+<section id="server-to-server" class="level2">
+<h2>Server to Server</h2>
+<ul>
+<li>Speed* depends on your server languages</li>
+<li>AWS still charges for outbound “Inter-region” data transfer</li>
+<li>Gzip can almost always help (when the source is trusted)</li>
+</ul>
+<aside class="notes">
+<p>The server speed should not matter too much.</p>
+<p>(serialization takes up ~5% of cpu overhead for a server)</p>
 </aside>
 </section>
 </section>
@@ -588,8 +707,10 @@ Other Languages
 <section id="citations" class="level2">
 <h2>Citations</h2>
 <ul>
-<li><p>https://en.wikipedia.org/wiki/Comparison_of_data_serialization_formats</p></li>
-<li><p>MSGPACK benchmarks: https://github.com/ludocode/schemaless-benchmarks#test-data</p></li>
+<li><p><a href="https://en.wikipedia.org/wiki/Comparison_of_data_serialization_formats">List of serialization formats</a></p></li>
+<li><p><a href="https://blog.mailchimp.com/10m-api-calls-per-day-more/">Netflix scale blog post</a></p></li>
+<li><p><a href="https://blog.mailchimp.com/10m-api-calls-per-day-more/">Mailchimp scale blog post</a></p></li>
+<li><p><a href="https://github.com/ludocode/schemaless-benchmarks#test-data">MSGPACK benchmarks</a></p></li>
 </ul>
 <style>
 
@@ -597,9 +718,15 @@ Other Languages
     background: white;
   }
 
+  .reveal pre {
+    border: 4px solid black;
+    box-shadow: 0 0 0.5rem 0 rgba(255, 255, 255, 0.4), 0 0 1.5rem 0 rgba(0, 0, 0, 0.2), inset 0 0 1rem 0 rgba(255, 255, 255, 0.4), inset 0 0 2.5rem 0 rgba(0, 0, 0, 0.2);
+  }
+
   .reveal section img {
     max-height: 30vh;
     background: #FFF;
+    box-shadow: 0 0 0.5rem 0 rgba(255, 255, 255, 0.4), 0 0 1.5rem 0 rgba(0, 0, 0, 0.2), inset 0 0 1rem 0 rgba(255, 255, 255, 0.4), inset 0 0 2.5rem 0 rgba(0, 0, 0, 0.2);
   }
 
   .col-2 {
