@@ -38,6 +38,22 @@
 Nobody wants to use XML, but it really is better suited for encoding SVG than anything else.
 </div>
 
+## Warning
+
+There be <strike>dragons</strike> binary
+
+The following string representations are only for visualization purposes.
+
+<div class="notes">
+The string representations you will see are just that.
+
+It is a utf8 encoding of binary data.
+
+In many cases doing such stringification will corrupt the data.
+
+This is only for visualization purposes.
+</div>
+
 ## Avro
 
 [https://avro.apache.org/](https://avro.apache.org/)

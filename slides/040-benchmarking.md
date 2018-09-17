@@ -1,6 +1,6 @@
 <!--
 
-Synopsis: There are alternatives to JSON for sending data from client to server or between servers. What do they do and what do they look like? What are their benefits?Payload size? Encoding or Decoding speed? Let's find out. JSON is probably sufficient for most cases, but let's try and find the edge cases where you might want improvement.
+Synopsis: There are alternatives to JSON for sending data from client to server or between servers. What do they do and what do they look like? What are their benefits? Payload size? Encoding or Decoding speed? Let's find out. JSON is probably sufficient for most cases, but let's try and find the edge cases where you might want improvement.
 
 -->
 
@@ -49,8 +49,9 @@ Synopsis: There are alternatives to JSON for sending data from client to server 
 <h1>Browser Runtimes</h1>
 
 <div class="notes">
+Chrome only so far in graphs.
 
-Chrome only so far
+Cursory testing in firefox and desktop safari showed similar results.
 
 Take these with a grain of salt.
 </div>
@@ -59,18 +60,33 @@ Take these with a grain of salt.
 
 ![](./assets/browser-encoding-10k.svg)
 
+<div class="notes">
+XML seems to be bugged.
+
+Bencode is super slow by comparison
+</div>
+
 ## Browser: Encoding 100K
 
 ![](./assets/browser-encoding-100k.svg)
+
+<div class="notes">
+XML still bugged and bencode still slow.
+
+Scaling seems to be close to linear
+</div>
 
 ## Browser: Decoding 10K
 
 ![](./assets/browser-decoding-10k.svg)
 
+<div class="notes">
+Not much has changed
+</div>
+
 ## Browser: Decoding 100K
 
 ![](./assets/browser-decoding-100k.svg)
-
 
 
 ##
@@ -79,6 +95,7 @@ Take these with a grain of salt.
 
 <div class="notes">
 Its important to note that Node optimizes for JSON.
+  But not as much as the browser
 
 Other platforms might see results that favor JSON much less.
 </div>
@@ -87,6 +104,10 @@ Other platforms might see results that favor JSON much less.
 
 ![](./assets/encoding-10k.svg)
 
+<div class="notes">
+Still nothing faster
+</div>
+
 ## Node: Encoding 100K
 
 ![](./assets/encoding-100k.svg)
@@ -94,6 +115,10 @@ Other platforms might see results that favor JSON much less.
 ## Node: Decoding 10K
 
 ![](./assets/decoding-10k.svg)
+
+<div class="notes">
+We start to see some change
+</div>
 
 ## Node: Decoding 100K
 
@@ -106,7 +131,16 @@ Other platforms might see results that favor JSON much less.
 
 ## Go
 
+![](./assets/go-benchmark-results.png)
+
 [https://github.com/alecthomas/go_serialization_benchmarks](https://github.com/alecthomas/go_serialization_benchmarks)
+
+<div class="notes">
+protobuf, msgpack, gencode, and some others...
+
+outperform the available go json libraries.
+(almost by an order of magnitude)
+</div>
 
 ## Java
 
@@ -117,6 +151,7 @@ Other platforms might see results that favor JSON much less.
 <div class="notes">
 - 2-part series
 - shows Java has some JSON libraries that are faster than protobuf for general data
+  - they do runtime schema generation and caching
 </div>
 
 ---
