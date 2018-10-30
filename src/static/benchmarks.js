@@ -23,18 +23,22 @@ const runBenchmarks = function(options, deps) {
     const resultsMap = {};
     FORMATS_ARRAY.map(format => {
       dataArray.map(dataset => {
-        encodeSuite.add(`${format} Encode ${dataset.name}`, {
+        let _dataset = JSON.parse(JSON.stringify(dataset));
+        encodeSuite.add(`${format} Encode ${_dataset.name}`, {
           defer: true,
           fn: async function(deferred) {
-            const hashKey = format + dataset.name;
-            const result = await transforms['response'][format](dataset.data);
+            const hashKey = format + _dataset.name;
+            const result = await transforms['response'][format](_dataset.data);
             if(!resultsMap[hashKey]) {
               resultsMap[hashKey] = result;
             }
             deferred.resolve(result);
           },
           onComplete: function(result) {
-            handleOnComplete(format, dataset, 'Encoding', result);
+            handleOnComplete(format, _dataset, 'Encoding', result);
+          },
+          onCycle() {
+            _dataset = JSON.parse(JSON.stringify(dataset));
           }
         });
         decodeSuite.add(`${format} Decode ${dataset.name}`, {

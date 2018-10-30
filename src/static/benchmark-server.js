@@ -42,6 +42,6 @@ runBenchmarks({
   jsdom,
 }).then(results => {
   results.map(result => {
-    fs.writeFileSync(path.resolve(`server-${__dirname}/${result.fileName}.svg`), result.graph)
+    fs.writeFileSync(path.resolve(`./server-${result.fileName}.svg`), result.graph)
   });
 });
